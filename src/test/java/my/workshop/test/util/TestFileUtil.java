@@ -2,6 +2,7 @@ package my.workshop.test.util;
 
 import my.workshop.json.example.Example1Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,10 +30,9 @@ public class TestFileUtil {
         return readLines(path).collect(Collectors.joining("\n"));
     }
 
-    public static String getResource(String path) {
+    public static URL getResourceURL(String path) {
         URL url = Example1Test.class.getClassLoader().getResource(path);
-        System.out.println(url);
-        return "";
+        return url;
     }
 
     public static String getResourceAsString(String path) {
