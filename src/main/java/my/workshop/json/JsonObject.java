@@ -6,51 +6,59 @@ public interface JsonObject extends Iterable<String> {
 
     Iterator<String> getFieldNames();
 
-    boolean contains(String fieldName);
+    boolean contains(String name);
 
-    JsonValue findValue(String fieldName);
+    JsonValue findValue(String name);
 
-    default JsonValue getValue(String fieldName) {
-        JsonValue value = findValue(fieldName);
+    default JsonValue getValue(String name) {
+        JsonValue value = findValue(name);
         if (value == null) {
-            throw new JsonException("field does not exist");
+            throw new JsonFieldNotExistsException(name);
         }
 
         return value;
     }
 
-    default JsonValueType getValueType(String fieldName) {
-        return getValue(fieldName).getType();
+    default JsonValueType getValueType(String name) {
+        return getValue(name).getType();
     }
 
-    void setField(String fieldName, JsonValue value);
+    void setField(String name, JsonValue value);
 
-    default String getString(String fieldName) {
-        return getValue(fieldName).getString();
+    void addField(String name, JsonValue value);
+
+    void addFieldAfter(String name, JsonValue value, String after);
+
+    void addFieldBefore(String name, JsonValue value, String before);
+
+    boolean removeField(String name);
+
+    default String getString(String name) {
+        return getValue(name).getString();
     }
 
-    default JsonValue[] getArray(String fieldName) {
-        return getValue(fieldName).getArray();
+    default JsonValue[] getArray(String name) {
+        return getValue(name).getArray();
     }
 
-    default JsonObject getObject(String fieldName) {
-        return getValue(fieldName).getObject();
+    default JsonObject getObject(String name) {
+        return getValue(name).getObject();
     }
 
-    default int getNumberAsInt(String fieldName) {
-        return getValue(fieldName).getNumberAsInt();
+    default int getNumberAsInt(String name) {
+        return getValue(name).getNumberAsInt();
     }
 
-    default long getNumberAsLong(String fieldName) {
-        return getValue(fieldName).getNumberAsLong();
+    default long getNumberAsLong(String name) {
+        return getValue(name).getNumberAsLong();
     }
 
-    default float getNumberAsFloat(String fieldName) {
-        return getValue(fieldName).getNumberAsFloat();
+    default float getNumberAsFloat(String name) {
+        return getValue(name).getNumberAsFloat();
     }
 
-    default double getNumberAsDouble(String fieldName) {
-        return getValue(fieldName).getNumberAsDouble();
+    default double getNumberAsDouble(String name) {
+        return getValue(name).getNumberAsDouble();
     }
 
 }

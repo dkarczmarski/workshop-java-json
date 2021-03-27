@@ -1,11 +1,13 @@
 package my.workshop.json.impl;
 
 import my.workshop.json.JsonException;
+import my.workshop.json.JsonFieldNotExistsException;
 import my.workshop.json.JsonObject;
 import my.workshop.json.JsonValueType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -36,15 +38,14 @@ public class JsonObjectImplTest {
         final String fieldName2 = "field2";
         final String fieldName3 = "field3";
 
-        jo.setField(fieldName1, jsonNull());
-        jo.setField(fieldName2, jsonNull());
-        jo.setField(fieldName3, jsonNull());
+        jo.addField(fieldName1, jsonNull());
+        jo.addField(fieldName2, jsonNull());
+        jo.addField(fieldName3, jsonNull());
 
-        Set<String> set = StreamSupport.stream(jo.spliterator(), false).collect(Collectors.toSet());
-        assertEquals(3, set.size());
-        assertTrue(set.contains(fieldName1));
-        assertTrue(set.contains(fieldName2));
-        assertTrue(set.contains(fieldName3));
+        Iterator<String> fieldNames = jo.getFieldNames();
+        assertEquals(fieldName1, fieldNames.next());
+        assertEquals(fieldName2, fieldNames.next());
+        assertEquals(fieldName3, fieldNames.next());
     }
 
     @Test
@@ -158,4 +159,100 @@ public class JsonObjectImplTest {
         assertEquals(1234.5d, jo.getNumberAsDouble(fieldName));
     }
 
+    @Test
+    void addField() {
+        JsonObject jo = new JsonObjectImpl();
+        final String fieldName1 = "field1";
+        final String fieldName2 = "field2";
+        final String fieldName3 = "field3";
+
+        jo.addField(fieldName1, jsonNull());
+        jo.addField(fieldName2, jsonNull());
+        jo.addField(fieldName3, jsonNull());
+
+        Iterator<String> fieldNames = jo.getFieldNames();
+        assertEquals(fieldName1, fieldNames.next());
+        assertEquals(fieldName2, fieldNames.next());
+        assertEquals(fieldName3, fieldNames.next());
+    }
+
+    @Test
+    void addFieldAfter() {
+        JsonObject jo = new JsonObjectImpl();
+        final String fieldName1 = "field1";
+        final String fieldName2 = "field2";
+        final String fieldName3 = "field3";
+
+        jo.addField(fieldName1, jsonNull());
+        jo.addField(fieldName2, jsonNull());
+        jo.addField(fieldName3, jsonNull());
+
+        final String fieldName4 = "field4";
+        jo.addFieldAfter(fieldName4, jsonNull(), fieldName1);
+
+        Iterator<String> fieldNames = jo.getFieldNames();
+        assertEquals(fieldName1, fieldNames.next());
+        assertEquals(fieldName4, fieldNames.next());
+        assertEquals(fieldName2, fieldNames.next());
+        assertEquals(fieldName3, fieldNames.next());
+    }
+
+    @Test
+    void addFieldBefore() {
+        JsonObject jo = new JsonObjectImpl();
+        final String fieldName1 = "field1";
+        final String fieldName2 = "field2";
+        final String fieldName3 = "field3";
+
+        jo.addField(fieldName1, jsonNull());
+        jo.addField(fieldName2, jsonNull());
+        jo.addField(fieldName3, jsonNull());
+
+        final String fieldName4 = "field4";
+        jo.addFieldBefore(fieldName4, jsonNull(), fieldName1);
+
+        final String fieldName5 = "field5";
+        jo.addFieldBefore(fieldName5, jsonNull(), fieldName3);
+
+        Iterator<String> fieldNames = jo.getFieldNames();
+        assertEquals(fieldName4, fieldNames.next());
+        assertEquals(fieldName1, fieldNames.next());
+        assertEquals(fieldName2, fieldNames.next());
+        assertEquals(fieldName5, fieldNames.next());
+        assertEquals(fieldName3, fieldNames.next());
+    }
+
+    @Test
+    void removeField() {
+        JsonObject jo = new JsonObjectImpl();
+        final String fieldName = "myfield";
+
+        assertFalse(jo.contains(fieldName));
+        jo.addField(fieldName, jsonNull());
+        assertTrue(jo.contains(fieldName));
+
+        assertTrue(jo.removeField(fieldName));
+        assertFalse(jo.contains(fieldName));
+        assertFalse(jo.removeField(fieldName));
+    }
+
+    @Test
+    void setField() {
+        JsonObject jo = new JsonObjectImpl();
+        final String fieldName = "field1";
+        final String fieldValue1 = "v1";
+        final int fieldValue2 = 123;
+
+        assertFalse(jo.contains(fieldName));
+
+        jo.setField(fieldName, jsonString(fieldValue1));
+        assertTrue(jo.contains(fieldName));
+        assertEquals(JsonValueType.STRING, jo.getValueType(fieldName));
+        assertEquals(fieldValue1, jo.getString(fieldName));
+
+        jo.setField(fieldName, jsonNumber(fieldValue2));
+        assertTrue(jo.contains(fieldName));
+        assertEquals(JsonValueType.NUMBER, jo.getValueType(fieldName));
+        assertEquals(fieldValue2, jo.getNumberAsInt(fieldName));
+    }
 }
