@@ -15,26 +15,6 @@ import java.util.stream.Stream;
 
 public class TestFileUtil {
 
-    public static Stream<String> readLines(Path path) {
-        Stream<String> stream;
-        try {
-            stream = Files.lines(path);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return stream;
-    }
-
-    public static String readToString(Path path) {
-        return readLines(path).collect(Collectors.joining("\n"));
-    }
-
-    public static URL getResourceURL(String path) {
-        URL url = Example1Test.class.getClassLoader().getResource(path);
-        return url;
-    }
-
     public static String getResourceAsString(String path) {
         byte[] bytes;
         try {

@@ -25,7 +25,7 @@ public class JsonValueImpl implements JsonValue {
 
     private void checkType(JsonValueType expectedType) {
         if (type != expectedType) {
-            throw new JsonException("bad value type");
+            throw new JsonException(String.format("Bad value type: actual= %s, expected= %s", type, expectedType));
         }
     }
 

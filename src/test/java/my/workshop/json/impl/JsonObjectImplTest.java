@@ -23,12 +23,12 @@ public class JsonObjectImplTest {
         final String fieldName = "field1";
 
         assertFalse(jo.contains(fieldName));
-        assertNull(jo.findValue(fieldName));
+        assertFalse(jo.findValue(fieldName).isPresent());
 
         jo.setField(fieldName, jsonNull());
 
         assertTrue(jo.contains(fieldName));
-        assertNotNull(jo.findValue(fieldName));
+        assertTrue(jo.findValue(fieldName).isPresent());
     }
 
     @Test
@@ -53,7 +53,7 @@ public class JsonObjectImplTest {
         JsonObject jo = new JsonObjectImpl();
         final String fieldName = "field1";
 
-        assertNull(jo.findValue(fieldName));
+        assertFalse(jo.findValue(fieldName).isPresent());
 
         jo.setField(fieldName, jsonString("v1"));
         assertNotNull(jo.findValue(fieldName));

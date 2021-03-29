@@ -1,6 +1,6 @@
 package my.workshop.json.util;
 
-import my.workshop.json.JsonException;
+import my.workshop.json.JsonDataException;
 import my.workshop.json.JsonFactory;
 import my.workshop.json.JsonObject;
 import my.workshop.json.JsonValue;
@@ -45,10 +45,10 @@ public class JsonObjectReader {
                 skipWhitespace();
             }
             if (eof()) {
-                throw new JsonException("EOF");
+                throw new JsonDataException("EOF");
             }
 
-            char ch = s.charAt(i+1);
+            char ch = s.charAt(i + 1);
             if (!peakMode) {
                 i++;
             }
@@ -81,23 +81,31 @@ public class JsonObjectReader {
         }
     }
 
-    static char checkChar(char ch, String domain) {
-        if (!domain.contains(String.valueOf(ch))) {
-            throw new JsonException("bad char: " + ch);
+    static String iteratorInfo(JsonIterator it) {
+        int i = it.getDataIndex();
+        return String.format("char= %c, index= %d", it.getData().charAt(i), i);
+    }
+
+    static boolean checkChar(char ch, String domain) {
+        return domain.contains(String.valueOf(ch));
+    }
+
+    static void checkChar(char ch, String domain, JsonIterator it) {
+        if (!checkChar(ch, domain)) {
+            throw new JsonDataException(iteratorInfo(it));
         }
-        return ch;
     }
 
     static void checkString(JsonIterator it, String expected) {
         for (int i = 0, n = expected.length(); i < n; ++i) {
             if (it.nextChar() != expected.charAt(i)) {
-                throw new JsonException("");
+                throw new JsonDataException(iteratorInfo(it));
             }
         }
     }
 
     static String readQuotedString(JsonIterator it) {
-        checkChar(it.nextChar(true), "\"");
+        checkChar(it.nextChar(true), "\"", it);
 
         char ch;
         int beginIndex = -1;
@@ -172,14 +180,14 @@ public class JsonObjectReader {
         } else if (ch == '{') {
             result = readJsonObject(it);
         } else {
-            throw new JsonException("bad char ");
+            throw new JsonDataException(iteratorInfo(it));
         }
 
         return result;
     }
 
     static JsonValue readJsonArray(JsonIterator it) {
-        checkChar(it.nextChar(), "[");
+        checkChar(it.nextChar(), "[", it);
 
         List<JsonValue> args = new ArrayList<>();
         JsonValue jv;
@@ -204,7 +212,7 @@ public class JsonObjectReader {
             }
         }
 
-        checkChar(it.nextChar(), "]");
+        checkChar(it.nextChar(), "]", it);
 
         return JsonFactory.jsonArray(args.toArray(new JsonValue[args.size()]));
     }
@@ -212,7 +220,7 @@ public class JsonObjectReader {
     static JsonValue readJsonObject(JsonIterator it) {
         JsonObject o = JsonFactory.createJsonObject();
 
-        checkChar(it.nextChar(true), "{");
+        checkChar(it.nextChar(true), "{", it);
 
         boolean firstRound = true;
         char ch;
@@ -221,10 +229,10 @@ public class JsonObjectReader {
         while (true) {
             ch = it.peekChar(true);
             if (firstRound) {
-                checkChar(ch, "\"}");
+                checkChar(ch, "\"}", it);
                 firstRound = false;
             } else {
-                checkChar(ch, "},");
+                checkChar(ch, "},", it);
             }
 
             if (ch == '}') {
@@ -235,13 +243,13 @@ public class JsonObjectReader {
             }
 
             fieldName = readQuotedString(it);
-            checkChar(it.nextChar(true), ":");
+            checkChar(it.nextChar(true), ":", it);
             jsonValue = readJsonValue(it);
 
             o.setField(fieldName, jsonValue);
         }
 
-        checkChar(it.nextChar(), "}");
+        checkChar(it.nextChar(), "}", it);
 
         return JsonFactory.jsonObject(o);
     }
@@ -256,7 +264,7 @@ public class JsonObjectReader {
 
         it.skipWhitespace();
         if (!it.eof()) {
-            throw new JsonException("Unexpected data");
+            throw new JsonDataException(iteratorInfo(it));
         }
 
         return jv.getObject();

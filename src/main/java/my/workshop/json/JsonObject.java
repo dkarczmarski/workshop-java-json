@@ -1,6 +1,7 @@
 package my.workshop.json;
 
 import java.util.Iterator;
+import java.util.Optional;
 
 public interface JsonObject extends Iterable<String> {
 
@@ -8,15 +9,10 @@ public interface JsonObject extends Iterable<String> {
 
     boolean contains(String name);
 
-    JsonValue findValue(String name);
+    Optional<JsonValue> findValue(String name);
 
     default JsonValue getValue(String name) {
-        JsonValue value = findValue(name);
-        if (value == null) {
-            throw new JsonFieldNotExistsException(name);
-        }
-
-        return value;
+        return findValue(name).orElseThrow(() -> new JsonFieldNotExistsException(name));
     }
 
     default JsonValueType getValueType(String name) {

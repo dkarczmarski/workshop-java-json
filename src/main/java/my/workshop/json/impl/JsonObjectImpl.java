@@ -1,8 +1,6 @@
 package my.workshop.json.impl;
 
-import my.workshop.json.JsonException;
-import my.workshop.json.JsonObject;
-import my.workshop.json.JsonValue;
+import my.workshop.json.*;
 
 import java.util.*;
 
@@ -22,8 +20,8 @@ public class JsonObjectImpl implements JsonObject {
     }
 
     @Override
-    public JsonValue findValue(String name) {
-        return fieldsMap.get(name);
+    public Optional<JsonValue> findValue(String name) {
+        return Optional.ofNullable(fieldsMap.get(name));
     }
 
     @Override
@@ -42,7 +40,7 @@ public class JsonObjectImpl implements JsonObject {
     int fieldIndex(String name) {
         int i = fieldNameList.indexOf(name);
         if (i == -1) {
-            throw new JsonException("FieldNotExists: " + name);
+            throw new JsonFieldNotExistsException(name);
         }
 
         return i;
@@ -50,7 +48,7 @@ public class JsonObjectImpl implements JsonObject {
 
     void addFieldAt(String name, JsonValue value, int index) {
         if (fieldNameList.contains(name)) {
-            throw new JsonException("FieldAlreadyExists: " + name);
+            throw new JsonFieldAlreadyExistsException(name);
         }
 
         fieldNameList.add(index, name);
