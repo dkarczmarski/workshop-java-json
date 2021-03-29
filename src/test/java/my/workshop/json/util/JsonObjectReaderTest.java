@@ -1,10 +1,16 @@
 package my.workshop.json.util;
 
 import my.workshop.json.JsonObject;
+import my.workshop.json.JsonValue;
+import my.workshop.json.JsonValueType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Iterator;
+
 import static my.workshop.json.util.JsonObjectReader.jsonIterator;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JsonObjectReaderTest {
 
@@ -18,10 +24,29 @@ public class JsonObjectReaderTest {
         System.out.println(JsonObjectWriter.serialize(jo));
     }
 
+    static boolean checkFields(JsonObject jo, String... fields) {
+        Iterator<String> fieldNames = jo.getFieldNames();
+
+        for (int i = 0, n = fields.length; i < n; ++i) {
+            if (!fieldNames.hasNext()) {
+                return false;
+            }
+
+            if (!fields[i].equals(fieldNames.next())) {
+                return false;
+            }
+        }
+
+        return !fieldNames.hasNext();
+    }
+
     @Test
     public void deserializeObjectWithNull() {
         String s = "{ \"nullField\": null }";
         JsonObject jo = JsonObjectReader.read(s);
+
+        assertEquals(JsonValueType.NULL, jo.getValue("nullField").getType());
+        assertTrue(checkFields(jo, "nullField"));
 
         System.out.println(JsonObjectWriter.serialize(jo));
     }
@@ -31,6 +56,10 @@ public class JsonObjectReaderTest {
         String s = "{ \"falseField\": false }";
         JsonObject jo = JsonObjectReader.read(s);
 
+        assertEquals(JsonValueType.BOOLEAN, jo.getValue("falseField").getType());
+        assertEquals(false, jo.getValue("falseField").getBoolean());
+        assertTrue(checkFields(jo, "falseField"));
+
         System.out.println(JsonObjectWriter.serialize(jo));
     }
 
@@ -38,6 +67,10 @@ public class JsonObjectReaderTest {
     public void deserializeObjectWithTrue() {
         String s = "{ \"trueField\": true }";
         JsonObject jo = JsonObjectReader.read(s);
+
+        assertEquals(JsonValueType.BOOLEAN, jo.getValue("trueField").getType());
+        assertEquals(true, jo.getValue("trueField").getBoolean());
+        assertTrue(checkFields(jo, "trueField"));
 
         System.out.println(JsonObjectWriter.serialize(jo));
     }
@@ -47,6 +80,10 @@ public class JsonObjectReaderTest {
         String s = "{ \"stringField\": \"value123\" }";
         JsonObject jo = JsonObjectReader.read(s);
 
+        assertEquals(JsonValueType.STRING, jo.getValue("stringField").getType());
+        assertEquals("value123", jo.getValue("stringField").getString());
+        assertTrue(checkFields(jo, "stringField"));
+
         System.out.println(JsonObjectWriter.serialize(jo));
     }
 
@@ -54,6 +91,11 @@ public class JsonObjectReaderTest {
     public void deserializeObjectWithNumericInt() {
         String s = "{ \"numericIntField\": 123 }";
         JsonObject jo = JsonObjectReader.read(s);
+
+        assertEquals(JsonValueType.NUMBER, jo.getValue("numericIntField").getType());
+        assertEquals("123", jo.getValue("numericIntField").getNumberAsString());
+        assertEquals(123, jo.getValue("numericIntField").getNumberAsInt());
+        assertTrue(checkFields(jo, "numericIntField"));
 
         System.out.println(JsonObjectWriter.serialize(jo));
     }
@@ -63,6 +105,11 @@ public class JsonObjectReaderTest {
         String s = "{ \"numericFloatField\": 123.456 }";
         JsonObject jo = JsonObjectReader.read(s);
 
+        assertEquals(JsonValueType.NUMBER, jo.getValue("numericFloatField").getType());
+        assertEquals("123.456", jo.getValue("numericFloatField").getNumberAsString());
+        assertEquals(123.456f, jo.getValue("numericFloatField").getNumberAsFloat());
+        assertTrue(checkFields(jo, "numericFloatField"));
+
         System.out.println(JsonObjectWriter.serialize(jo));
     }
 
@@ -71,70 +118,79 @@ public class JsonObjectReaderTest {
         String s = "{ \"objectField\": { \"stringField\": \"value123\"} }";
         JsonObject jo = JsonObjectReader.read(s);
 
+        assertEquals(JsonValueType.OBJECT, jo.getValue("objectField").getType());
+        assertTrue(checkFields(jo, "objectField"));
+
         System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
-    public void deserializeObjevctWithEmptyArray() {
-        String  s = "{ \"arrayField\": [] }";
+    public void deserializeObjectWithEmptyArray() {
+        String s = "{ \"arrayField\": [] }";
         JsonObject jo = JsonObjectReader.read(s);
 
+        assertEquals(JsonValueType.ARRAY, jo.getValue("arrayField").getType());
+        assertTrue(checkFields(jo, "arrayField"));
+
         System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
-    public void deserializeObjevctWithArray() {
-        String  s = "{ \"arrayField\": [ null, true, false, \"string123\"] }";
+    public void deserializeObjectWithArray() {
+        String s = "{ \"arrayField\": [ null, true, false, \"string123\"] }";
         JsonObject jo = JsonObjectReader.read(s);
 
-        System.out.println(JsonObjectWriter.serialize(jo));
-    }
+        JsonValue jv = jo.getValue("arrayField");
 
-    @Test
-    public void test1() {
-        String s = "10.0E+2";
-        System.out.println(Double.valueOf(s).toString());
+        assertEquals(JsonValueType.ARRAY, jv.getType());
+        assertTrue(checkFields(jo, "arrayField"));
+        assertEquals(JsonValueType.NULL, jv.getArray()[0].getType());
+        assertEquals(JsonValueType.BOOLEAN, jv.getArray()[1].getType());
+        assertEquals(JsonValueType.BOOLEAN, jv.getArray()[2].getType());
+        assertEquals(JsonValueType.STRING, jv.getArray()[3].getType());
+
+        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
     void readJsonString() {
         String s = "\"mystring\"";
-        String s1 = JsonObjectReader.readQuotedString(jsonIterator(s));
+        assertEquals("mystring", JsonObjectReader.readQuotedString(jsonIterator(s)));
     }
 
     @Test
     void jsonIterator_skipWhitespace() {
         String s = " \t \r \n a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-        Assertions.assertEquals(s, ji.getData());
-        Assertions.assertEquals(-1, ji.getDataIndex());
-        Assertions.assertEquals(7, ji.skipWhitespace());
-        Assertions.assertEquals(6, ji.getDataIndex());
-        Assertions.assertEquals(0, ji.skipWhitespace());
-        Assertions.assertEquals(6, ji.getDataIndex());
+        assertEquals(s, ji.getData());
+        assertEquals(-1, ji.getDataIndex());
+        assertEquals(7, ji.skipWhitespace());
+        assertEquals(6, ji.getDataIndex());
+        assertEquals(0, ji.skipWhitespace());
+        assertEquals(6, ji.getDataIndex());
     }
 
     @Test
     void jsonIterator_nextChar() {
         String s = "a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-        Assertions.assertEquals(s, ji.getData());
-        Assertions.assertEquals(-1, ji.getDataIndex());
-        Assertions.assertEquals('a', ji.nextChar());
-        Assertions.assertEquals(0, ji.getDataIndex());
-        Assertions.assertEquals(' ', ji.nextChar());
-        Assertions.assertEquals(1, ji.getDataIndex());
+        assertEquals(s, ji.getData());
+        assertEquals(-1, ji.getDataIndex());
+        assertEquals('a', ji.nextChar());
+        assertEquals(0, ji.getDataIndex());
+        assertEquals(' ', ji.nextChar());
+        assertEquals(1, ji.getDataIndex());
     }
 
     @Test
     void jsonIterator_peekChar() {
         String s = "a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-        Assertions.assertEquals(s, ji.getData());
-        Assertions.assertEquals(-1, ji.getDataIndex());
-        Assertions.assertEquals('a', ji.peekChar());
-        Assertions.assertEquals(-1, ji.getDataIndex());
-        Assertions.assertEquals('a', ji.peekChar());
-        Assertions.assertEquals(-1, ji.getDataIndex());
+        assertEquals(s, ji.getData());
+        assertEquals(-1, ji.getDataIndex());
+        assertEquals('a', ji.peekChar());
+        assertEquals(-1, ji.getDataIndex());
+        assertEquals('a', ji.peekChar());
+        assertEquals(-1, ji.getDataIndex());
     }
 }
