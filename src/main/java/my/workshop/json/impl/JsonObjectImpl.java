@@ -1,6 +1,9 @@
 package my.workshop.json.impl;
 
-import my.workshop.json.*;
+import my.workshop.json.JsonFieldAlreadyExistsException;
+import my.workshop.json.JsonFieldNotExistsException;
+import my.workshop.json.JsonObject;
+import my.workshop.json.JsonValue;
 
 import java.util.*;
 
@@ -9,9 +12,30 @@ public class JsonObjectImpl implements JsonObject {
     private final List<String> fieldNameList = new LinkedList<>();
     private final Map<String, JsonValue> fieldsMap = new HashMap<>();
 
+    static class ReadOnlyIterator<T> implements Iterator<T> {
+
+        final Iterator<T> it;
+
+        ReadOnlyIterator(Iterator<T> it) {
+            this.it = it;
+        }
+
+        public boolean hasNext() {
+            return this.it.hasNext();
+        }
+
+        public T next() {
+            return this.it.next();
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     @Override
     public Iterator<String> getFieldNames() {
-        return fieldNameList.iterator();
+        return new ReadOnlyIterator<>(fieldNameList.iterator());
     }
 
     @Override
