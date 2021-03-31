@@ -47,6 +47,16 @@ public class JsonObjectBuilder {
         return this;
     }
 
+    public JsonObjectBuilder setNumber(String fieldName, Double value) {
+        jo.setField(fieldName, jsonNumber(value));
+        return this;
+    }
+
+    public JsonObjectBuilder setNumber(String fieldName, String value) {
+        jo.setField(fieldName, jsonNumber(value));
+        return this;
+    }
+
     public JsonObjectBuilder setString(String fieldName, String value) {
         jo.setField(fieldName, jsonString(value));
         return this;

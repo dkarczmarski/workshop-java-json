@@ -46,41 +46,49 @@ public class JsonValueImpl implements JsonValue {
 
     @Override
     public JsonObject getObject() {
+        checkType(JsonValueType.OBJECT);
         return objectValue;
     }
 
     @Override
     public int getNumberAsInt() {
+        checkType(JsonValueType.NUMBER);
         return numeric(numericValue).intValue();
     }
 
     @Override
     public long getNumberAsLong() {
+        checkType(JsonValueType.NUMBER);
         return numeric(numericValue).longValue();
     }
 
     @Override
     public float getNumberAsFloat() {
+        checkType(JsonValueType.NUMBER);
         return numeric(numericValue).floatValue();
     }
 
     @Override
     public double getNumberAsDouble() {
+        checkType(JsonValueType.NUMBER);
         return numeric(numericValue).doubleValue();
     }
 
     @Override
     public String getNumberAsString() {
+        checkType(JsonValueType.NUMBER);
         return numericValue;
     }
 
     @Override
     public Boolean getBoolean() {
+        checkType(JsonValueType.BOOLEAN);
         return booleanValue;
     }
 
     @Override
     public JsonValue[] getArray() {
+        checkType(JsonValueType.ARRAY);
         return arrayValue;
     }
 

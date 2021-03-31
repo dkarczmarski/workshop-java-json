@@ -24,6 +24,10 @@ public interface JsonValue {
         return JsonValueType.ARRAY == getType();
     }
 
+    default boolean isString() {
+        return JsonValueType.STRING == getType();
+    }
+
     String getString();
 
     JsonObject getObject();
