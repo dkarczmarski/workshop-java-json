@@ -6,9 +6,10 @@ import my.workshop.json.JsonValueType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Iterator;
 
-import static my.workshop.json.util.JsonObjectReader.jsonIterator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -152,45 +153,49 @@ public class JsonObjectReaderTest {
         System.out.println(JsonObjectWriter.serialize(jo));
     }
 
+    static JsonObjectReader.JsonIterator jsonIterator(String s) {
+        return new JsonObjectReader.JsonIterator(new StringReader(s));
+    }
+
     @Test
-    void readJsonString() {
+    void readJsonString() throws IOException {
         String s = "\"mystring\"";
         assertEquals("mystring", JsonObjectReader.readQuotedString(jsonIterator(s)));
     }
 
     @Test
-    void jsonIterator_skipWhitespace() {
+    void jsonIterator_skipWhitespace() throws IOException {
         String s = " \t \r \n a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-        assertEquals(s, ji.getData());
-        assertEquals(-1, ji.getDataIndex());
+//        assertEquals(s, ji.getData());
+        assertEquals(-1, ji.getBuffIndex());
         assertEquals(7, ji.skipWhitespace());
-        assertEquals(6, ji.getDataIndex());
+        assertEquals(6, ji.getBuffIndex());
         assertEquals(0, ji.skipWhitespace());
-        assertEquals(6, ji.getDataIndex());
+        assertEquals(6, ji.getBuffIndex());
     }
 
     @Test
-    void jsonIterator_nextChar() {
+    void jsonIterator_nextChar() throws IOException {
         String s = "a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-        assertEquals(s, ji.getData());
-        assertEquals(-1, ji.getDataIndex());
+//        assertEquals(s, ji.getData());
+        assertEquals(-1, ji.getBuffIndex());
         assertEquals('a', ji.nextChar());
-        assertEquals(0, ji.getDataIndex());
+        assertEquals(0, ji.getBuffIndex());
         assertEquals(' ', ji.nextChar());
-        assertEquals(1, ji.getDataIndex());
+        assertEquals(1, ji.getBuffIndex());
     }
 
     @Test
-    void jsonIterator_peekChar() {
+    void jsonIterator_peekChar() throws IOException {
         String s = "a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-        assertEquals(s, ji.getData());
-        assertEquals(-1, ji.getDataIndex());
+//        assertEquals(s, ji.getData());
+        assertEquals(-1, ji.getBuffIndex());
         assertEquals('a', ji.peekChar());
-        assertEquals(-1, ji.getDataIndex());
+        assertEquals(-1, ji.getBuffIndex());
         assertEquals('a', ji.peekChar());
-        assertEquals(-1, ji.getDataIndex());
+        assertEquals(-1, ji.getBuffIndex());
     }
 }
