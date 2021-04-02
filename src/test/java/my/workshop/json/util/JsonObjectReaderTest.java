@@ -167,11 +167,10 @@ public class JsonObjectReaderTest {
     void jsonIterator_skipWhitespace() throws IOException {
         String s = " \t \r \n a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-//        assertEquals(s, ji.getData());
         assertEquals(-1, ji.getBuffIndex());
-        assertEquals(7, ji.skipWhitespace());
+        assertEquals('a', ji.skipWhitespace());
         assertEquals(6, ji.getBuffIndex());
-        assertEquals(0, ji.skipWhitespace());
+        assertEquals('a', ji.skipWhitespace());
         assertEquals(6, ji.getBuffIndex());
     }
 
@@ -179,11 +178,10 @@ public class JsonObjectReaderTest {
     void jsonIterator_nextChar() throws IOException {
         String s = "a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-//        assertEquals(s, ji.getData());
         assertEquals(-1, ji.getBuffIndex());
-        assertEquals('a', ji.nextChar());
+        assertEquals('a', ji.getChar(false, true));
         assertEquals(0, ji.getBuffIndex());
-        assertEquals(' ', ji.nextChar());
+        assertEquals(' ', ji.getChar(false, true));
         assertEquals(1, ji.getBuffIndex());
     }
 
@@ -191,11 +189,10 @@ public class JsonObjectReaderTest {
     void jsonIterator_peekChar() throws IOException {
         String s = "a b";
         JsonObjectReader.JsonIterator ji = jsonIterator(s);
-//        assertEquals(s, ji.getData());
         assertEquals(-1, ji.getBuffIndex());
-        assertEquals('a', ji.peekChar());
+        assertEquals('a', ji.getChar(false, false));
         assertEquals(-1, ji.getBuffIndex());
-        assertEquals('a', ji.peekChar());
+        assertEquals('a', ji.getChar(false, false));
         assertEquals(-1, ji.getBuffIndex());
     }
 }

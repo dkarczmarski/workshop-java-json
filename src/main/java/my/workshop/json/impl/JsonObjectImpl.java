@@ -12,7 +12,7 @@ public class JsonObjectImpl implements JsonObject {
     private final List<String> fieldNameList = new LinkedList<>();
     private final Map<String, JsonValue> fieldsMap = new HashMap<>();
 
-    static class ReadOnlyIterator<T> implements Iterator<T> {
+    private static class ReadOnlyIterator<T> implements Iterator<T> {
 
         final Iterator<T> it;
 

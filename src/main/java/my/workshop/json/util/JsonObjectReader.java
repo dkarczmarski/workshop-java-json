@@ -5,83 +5,99 @@ import my.workshop.json.JsonFactory;
 import my.workshop.json.JsonObject;
 import my.workshop.json.JsonValue;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.PushbackReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 public class JsonObjectReader {
 
-    static class JsonIterator {
-        final PushbackReader r;
-        int i;
-        int ch;
+    private static class JsonReader {
 
-        JsonIterator(Reader r) {
+        final PushbackReader r;
+        int buff;
+        int i;
+
+        JsonReader(Reader r) {
             this.r = new PushbackReader(r);
             this.i = -1;
         }
 
-        int skipWhitespace() throws IOException {
-            int bi = i;
+        int read(boolean moveNext) throws IOException {
+            buff = r.read();
 
-            while ((ch = r.read()) != -1) {
+            if (moveNext) {
+                i++;
+            } else {
+                if (buff == -1) {
+                    return -1;
+                }
+
+                r.unread(buff);
+            }
+
+            return buff;
+        }
+
+        boolean eof() {
+            return buff == -1;
+        }
+
+        int getIndex() {
+            return i;
+        }
+
+        int getBuff() {
+            return buff;
+        }
+    }
+
+    static class JsonIterator {
+
+        final JsonReader r;
+
+        JsonIterator(Reader r) {
+            this.r = new JsonReader(r);
+        }
+
+        int skipWhitespace() throws IOException {
+            int ch;
+            while ((ch = r.read(false)) != -1) {
                 if (!Character.isWhitespace(ch)) {
-                    r.unread(ch);
                     break;
                 }
-                i++;
+                r.read(true);
             }
 
-            return i - bi;
+            return ch;
         }
 
-        public boolean eof() {
-            return ch == -1;
+        boolean eof() {
+            return r.eof();
         }
 
-        char getChar(boolean skipWhitespace, boolean peakMode) throws IOException {
+        char getChar(boolean skipWhitespace, boolean moveNext) throws IOException {
             if (skipWhitespace) {
-                skipWhitespace();
-            }
-            if (eof()) {
-                throw new JsonDataException("EOF");
-            }
+                if (skipWhitespace() == -1) {
+                    if (moveNext) {
+                        throw new JsonDataException("EOF");
+                    }
 
-            ch = r.read();
-            if (peakMode) {
-                r.unread(ch);
-            } else {
-                i++;
+                    return '\0';
+                }
             }
 
-            return (char) ch;
+            return (char) r.read(moveNext);
         }
 
-        public char peekChar(boolean skipWhitespace) throws IOException {
-            return getChar(skipWhitespace, true);
+        char getBuffChar() {
+            return (char) r.getBuff();
         }
 
-        public char peekChar() throws IOException {
-            return peekChar(false);
-        }
-
-        public char nextChar(boolean skipWhitespace) throws IOException {
-            return getChar(skipWhitespace, false);
-        }
-
-        public char nextChar() throws IOException {
-            return nextChar(false);
-        }
-
-        public char getBuffChar() {
-            if (i == -1) {
-                throw new IllegalStateException();
-            }
-            return (char) ch;
-        }
-
-        public int getBuffIndex() {
-            return i;
+        int getBuffIndex() {
+            return r.getIndex();
         }
     }
 
@@ -102,20 +118,19 @@ public class JsonObjectReader {
 
     static void checkString(JsonIterator it, String expected) throws IOException {
         for (int i = 0, n = expected.length(); i < n; ++i) {
-            if (it.nextChar() != expected.charAt(i)) {
+            if (it.getChar(false, true) != expected.charAt(i)) {
                 throw new JsonDataException(iteratorInfo(it));
             }
         }
     }
 
     static String readQuotedString(JsonIterator it) throws IOException {
-        checkChar(it.nextChar(true), "\"", it);
+        checkChar(it.getChar(true, true), "\"", it);
 
         StringBuilder sb = new StringBuilder();
         char ch;
         while (true) {
-            ch = it.nextChar();
-
+            ch = it.getChar(false, true);
             if (ch == '\"') {
                 break;
             }
@@ -149,12 +164,12 @@ public class JsonObjectReader {
         StringBuilder sb = new StringBuilder();
         char ch;
         while (true) {
-            ch = it.peekChar();
+            ch = it.getChar(false, false);
             if (!(ch == '-' || ch == '+' || ch == 'e' || ch == 'E' || ch == '.' || ('0' <= ch && ch <= '9'))) {
                 break;
             }
 
-            sb.append(it.nextChar());
+            sb.append(it.getChar(false, true));
         }
 
         return JsonFactory.jsonNumber(sb.toString());
@@ -162,7 +177,7 @@ public class JsonObjectReader {
 
     static JsonValue readJsonValue(JsonIterator it) throws IOException {
         JsonValue result;
-        char ch = it.peekChar(true);
+        char ch = it.getChar(true, false);
 
         if (ch == 'n') {
             result = readJsonNull(it);
@@ -186,7 +201,7 @@ public class JsonObjectReader {
     }
 
     static JsonValue readJsonArray(JsonIterator it) throws IOException {
-        checkChar(it.nextChar(), "[", it);
+        checkChar(it.getChar(false, true), "[", it);
 
         List<JsonValue> args = new ArrayList<>();
         JsonValue jv;
@@ -194,12 +209,12 @@ public class JsonObjectReader {
         char ch;
         boolean firstRound = true;
         while (true) {
-            ch = it.peekChar();
+            ch = it.getChar(false, false);
             if (ch == ']') {
                 break;
             }
             if (!firstRound && ch == ',') {
-                it.nextChar();
+                it.getChar(false, true);
                 continue;
             }
 
@@ -211,7 +226,7 @@ public class JsonObjectReader {
             }
         }
 
-        checkChar(it.nextChar(), "]", it);
+        checkChar(it.getChar(false, true), "]", it);
 
         return JsonFactory.jsonArray(args.toArray(new JsonValue[args.size()]));
     }
@@ -219,14 +234,14 @@ public class JsonObjectReader {
     static JsonValue readJsonObject(JsonIterator it) throws IOException {
         JsonObject o = JsonFactory.createJsonObject();
 
-        checkChar(it.nextChar(true), "{", it);
+        checkChar(it.getChar(true, true), "{", it);
 
         boolean firstRound = true;
         char ch;
         String fieldName;
         JsonValue jsonValue;
         while (true) {
-            ch = it.peekChar(true);
+            ch = it.getChar(true, false);
             if (firstRound) {
                 checkChar(ch, "\"}", it);
                 firstRound = false;
@@ -238,17 +253,17 @@ public class JsonObjectReader {
                 break;
             }
             if (ch == ',') {
-                it.nextChar();
+                it.getChar(false, true);
             }
 
             fieldName = readQuotedString(it);
-            checkChar(it.nextChar(true), ":", it);
+            checkChar(it.getChar(true, true), ":", it);
             jsonValue = readJsonValue(it);
 
             o.setField(fieldName, jsonValue);
         }
 
-        checkChar(it.nextChar(), "}", it);
+        checkChar(it.getChar(false, true), "}", it);
 
         return JsonFactory.jsonObject(o);
     }
