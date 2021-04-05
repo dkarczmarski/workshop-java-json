@@ -1,6 +1,7 @@
 package my.workshop.json;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -8,6 +9,7 @@ import java.util.function.Function;
 public class JsonValueTestSupprt {
 
     public static class ValueTypeDesc {
+
         final Function<JsonValue, Object> valueSupplier;
         final Function<JsonValue, Boolean> isTypeSupplier;
 
@@ -38,6 +40,22 @@ public class JsonValueTestSupprt {
 
     public static ValueTypeDesc getDesc(JsonValueType type) {
         return Optional.ofNullable(map.get(type)).orElseThrow(() -> new RuntimeException(type.name()));
+    }
+
+    public static boolean checkFields(JsonObject jo, String... fields) {
+        Iterator<String> fieldNames = jo.getFieldNames();
+
+        for (int i = 0, n = fields.length; i < n; ++i) {
+            if (!fieldNames.hasNext()) {
+                return false;
+            }
+
+            if (!fields[i].equals(fieldNames.next())) {
+                return false;
+            }
+        }
+
+        return !fieldNames.hasNext();
     }
 
 }

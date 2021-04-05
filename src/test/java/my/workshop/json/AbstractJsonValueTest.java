@@ -178,8 +178,10 @@ public abstract class AbstractJsonValueTest {
             JsonValueTestSupprt.ValueTypeDesc desc = JsonValueTestSupprt.getDesc(type);
             if (type.equals(expectedType)) {
                 assertDoesNotThrow(() -> desc.getValueSupplier().apply(jv), type.toString());
+                assertTrue(desc.getIsTypeSupplier().apply(jv), type.toString());
             } else {
                 assertThrows(JsonException.class, () -> desc.getValueSupplier().apply(jv), type.toString());
+                assertFalse(desc.getIsTypeSupplier().apply(jv), type.toString());
             }
         }
     }

@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Iterator;
 
+import static my.workshop.json.JsonValueTestSupprt.checkFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,24 +21,6 @@ public class JsonObjectReaderTest {
         JsonObject jo = JsonObjectReader.read(s);
 
         Assertions.assertFalse(jo.getFieldNames().hasNext());
-
-        System.out.println(JsonObjectWriter.serialize(jo));
-    }
-
-    static boolean checkFields(JsonObject jo, String... fields) {
-        Iterator<String> fieldNames = jo.getFieldNames();
-
-        for (int i = 0, n = fields.length; i < n; ++i) {
-            if (!fieldNames.hasNext()) {
-                return false;
-            }
-
-            if (!fields[i].equals(fieldNames.next())) {
-                return false;
-            }
-        }
-
-        return !fieldNames.hasNext();
     }
 
     @Test
@@ -48,8 +30,6 @@ public class JsonObjectReaderTest {
 
         assertEquals(JsonValueType.NULL, jo.getValue("nullField").getType());
         assertTrue(checkFields(jo, "nullField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -60,8 +40,6 @@ public class JsonObjectReaderTest {
         assertEquals(JsonValueType.BOOLEAN, jo.getValue("falseField").getType());
         assertEquals(false, jo.getValue("falseField").getBoolean());
         assertTrue(checkFields(jo, "falseField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -72,8 +50,6 @@ public class JsonObjectReaderTest {
         assertEquals(JsonValueType.BOOLEAN, jo.getValue("trueField").getType());
         assertEquals(true, jo.getValue("trueField").getBoolean());
         assertTrue(checkFields(jo, "trueField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -84,8 +60,6 @@ public class JsonObjectReaderTest {
         assertEquals(JsonValueType.STRING, jo.getValue("stringField").getType());
         assertEquals("value123", jo.getValue("stringField").getString());
         assertTrue(checkFields(jo, "stringField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -97,8 +71,6 @@ public class JsonObjectReaderTest {
         assertEquals("123", jo.getValue("numericIntField").getNumberAsString());
         assertEquals(123, jo.getValue("numericIntField").getNumberAsInt());
         assertTrue(checkFields(jo, "numericIntField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -110,8 +82,6 @@ public class JsonObjectReaderTest {
         assertEquals("123.456", jo.getValue("numericFloatField").getNumberAsString());
         assertEquals(123.456f, jo.getValue("numericFloatField").getNumberAsFloat());
         assertTrue(checkFields(jo, "numericFloatField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -121,8 +91,6 @@ public class JsonObjectReaderTest {
 
         assertEquals(JsonValueType.OBJECT, jo.getValue("objectField").getType());
         assertTrue(checkFields(jo, "objectField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -132,8 +100,6 @@ public class JsonObjectReaderTest {
 
         assertEquals(JsonValueType.ARRAY, jo.getValue("arrayField").getType());
         assertTrue(checkFields(jo, "arrayField"));
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     @Test
@@ -149,8 +115,6 @@ public class JsonObjectReaderTest {
         assertEquals(JsonValueType.BOOLEAN, jv.getArray()[1].getType());
         assertEquals(JsonValueType.BOOLEAN, jv.getArray()[2].getType());
         assertEquals(JsonValueType.STRING, jv.getArray()[3].getType());
-
-        System.out.println(JsonObjectWriter.serialize(jo));
     }
 
     static JsonObjectReader.JsonIterator jsonIterator(String s) {
