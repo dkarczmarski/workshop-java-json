@@ -5,10 +5,7 @@ import my.workshop.json.JsonFactory;
 import my.workshop.json.JsonObject;
 import my.workshop.json.JsonValue;
 
-import java.io.IOException;
-import java.io.PushbackReader;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -286,6 +283,12 @@ public class JsonObjectReader {
         }
 
         return jv.getObject();
+    }
+
+    public static JsonObject read(InputStream is, String inputCharsetName) throws IOException {
+        InputStreamReader r = new InputStreamReader(is, inputCharsetName);
+
+        return read(r);
     }
 
 }

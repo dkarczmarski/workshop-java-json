@@ -4,6 +4,7 @@ import my.workshop.json.example.Example1Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -24,6 +25,12 @@ public class TestFileUtil {
             throw new RuntimeException(e);
         }
         return new String(bytes);
+    }
+
+    public static InputStream getResourceAsInputSteam(String path) {
+        InputStream is = Example1Test.class.getClassLoader().getResourceAsStream(path);
+
+        return is;
     }
 
 }
